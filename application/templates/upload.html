@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>CSV Users Upload</h1>
+<p>Upload the CSV file containing the students/teachers here</p>
+<div class="alert alert-primary" role="alert">
+    <p>WARNING: Uploading a CSV will write over current User database</p>
+</div>
+<form method=post enctype=multipart/form-data>
+    <input type=file name=file>
+    <input type=submit value=Upload>
+</form>
+{% for user in users%}
+    <span>[{{ user }}]</span>
+{% endfor %}
+{% endblock %}
