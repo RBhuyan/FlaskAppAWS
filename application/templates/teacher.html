@@ -1,6 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Hi, {{ current_user.username }}!</h1>
-    <p>This is the main page for teachers</p>
+    <h1>Hi, {{ current_user.username }}! You are in the teacher page</h1>
+
+    <nav class="navbar navbar-light bg-light">
+    <h2>Upload menus</h2>
+        <form method=post enctype=multipart/form-data>
+        <label class="btn btn-default">
+        <input type=file name=ZippedHTML>
+        </label>
+        <label class="btn btn-default">
+            <input type=submit value=Upload>
+        </label>
+    </form>
+
+        {% if bool %}
+        <p>File successfully uploaded</p>
+        {% endif %}
+</nav>
 {% endblock %}

@@ -35,4 +35,4 @@ class Menu(db.Model):
 
 
     def __repr__(self):
-        return '<Menu {}>'.format(self.body)
+        return '<Menu {}>'.format(self.filename)
