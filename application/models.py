@@ -9,9 +9,9 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     role = db.Column(db.String(120), index=True)
     password_hash = db.Column(db.String(128))
-    menuOne_id = db.Column(db.Integer, db.ForeignKey('menu.id'))
-    menuThree_id = db.Column(db.Integer, db.ForeignKey('menu.id'))
-    menuTwo_id = db.Column(db.Integer, db.ForeignKey('menu.id'))
+    menuOne_fn = db.Column(db.String(128), db.ForeignKey('menu.filename'))
+    menuThree_fn = db.Column(db.String(128), db.ForeignKey('menu.filename'))
+    menuTwo_fn = db.Column(db.String(128), db.ForeignKey('menu.filename'))
 
     def __repr__(self):
         return '<User {} {}>'.format(self.username, self.role)

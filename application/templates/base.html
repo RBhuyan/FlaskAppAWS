@@ -1,5 +1,7 @@
 {% extends 'bootstrap/base.html' %}
 
+
+
 {% block styles %}
 {{super()}}
 <link rel="stylesheet"
@@ -23,6 +25,12 @@
         <ul class="nav navbar-nav">
           <li class="active"><a href="{{ url_for('index') }}">Home</a></li>
           <li><a href="{{ url_for('upload')  }}">Upload CSV</a></li>
+            {% if current_user.role == 'teacher' %}
+                <li><a href="{{ url_for('teacherReport') }}">View Teacher Report</a></li>
+            {% endif %}
+            {% if current_user.role == 'student' %}
+                <li><a href="{{ url_for('studentReport') }}">View Student Report</a></li>
+            {% endif %}
             {% if current_user.is_anonymous %}
                 <li><a href="{{ url_for('login') }}">Login</a></li>
             {% else %}
@@ -33,6 +41,6 @@
     </nav>
 
 
-<body style="background-color:#ed8a63;">
+<body style="background-color:LightGreen;">
 {% endblock %}
 

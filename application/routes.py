@@ -1,16 +1,17 @@
-from flask import render_template, flash, redirect, url_for, request, send_file
+from flask import render_template, flash, redirect, url_for, request, send_file, make_response
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from application import app, db, bootstrap
 from application.forms import LoginForm
 from application.models import User, Menu
+from flask_csv import send_csv
+from flask_excel import init_excel
 import io
 import os
 import csv
 import zipfile
 import shutil
-import jinja2
 
 #basedir = app.root_path
 #HTMLfiles = '/HTMLfiles'
@@ -22,7 +23,7 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'zip'])
 
 
 @app.route('/')
-@app.route('/index')
+@app.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
     if (current_user.role == "teacher"):
@@ -30,13 +31,24 @@ def index():
     files = Menu.query.all()
     menuNames = []
     for file in files:
-        totalName = "/HTMLfiles/" + file.filename
         menuNames.append(file)
-        #menuNames.append(totalName)
-    #files = db.session.query(Menu).query.all()
-    if len(files) > 0:
-        return render_template('index.html', title='Home', filenames=menuNames, bool='true')
-    return render_template('index.html', title='Home')
+    if len(files) <= 0:
+            return render_template('index.html', title='Home')
+
+    firstMenu = request.args.get('firstMenu', '')
+    secondMenu = request.args.get('secondMenu', '')
+    thirdMenu = request.args.get('thirdMenu', '')
+    if firstMenu == '' or secondMenu == '' or thirdMenu == '' or firstMenu == secondMenu or firstMenu == thirdMenu or secondMenu == thirdMenu : #Makes sure user selected a value in all dropdown boxes
+        return render_template('index.html', title='Home', filenames=menuNames, bool='true')       #Also checks they are unique values.
+    menu = Menu.query.filter_by(filename=firstMenu).first()
+    current_user.menuOne_fn = menu.filename
+    menu = Menu.query.filter_by(filename=secondMenu).first()
+    current_user.menuTwo_fn = menu.filename
+    menu = Menu.query.filter_by(filename=thirdMenu).first()
+    current_user.menuThree_fn = menu.filename
+    db.session.commit()
+    return render_template('index.html', title='Home', filenames=menuNames, bool='true')
+
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -123,3 +135,38 @@ def teacher():
             files_zip.extractall(app.config['UPLOAD_FOLDER2'])
             return render_template('teacher.html', bool='true') #Display the message that file transfer was successful
     return render_template('teacher.html')
+
+
+@app.route('/teacherReport', methods=['GET', 'POST'])
+def teacherReport():
+    users = User.query.all()    #returns a list of all users
+    return render_template('teacherReport.html')
+
+@app.route('/download', methods=['GET', 'POST'])    #Function called by the button in the download excel page
+def download():
+    users = User.query.all()
+    tempDicEntry = ["USERNAME", "VOTE 1", "VOTE 2", "VOTE 3"]
+    csv = 'USERNAME,VOTE 1,VOTE 2,VOTE3\n'
+    for user in users:
+        if user.menuOne_fn is None:
+            user.menuOne_fn = ''
+            user.menuTwo_fn = ''
+            user.menuThree_fn = ''
+        tempString = user.username + ',' + user.menuOne_fn + ',' + user.menuTwo_fn + ',' + user.menuThree_fn + '\n'
+        csv += tempString
+    for user in users:
+        if user.menuOne_fn == '':
+            user.menuOne_fn = None
+            user.menuTwo_fn = None
+            user.menuThree_fn = None
+    response = make_response(csv)
+    cd = 'attachment; filename=studentVotingReports.csv'
+    response.headers['Content-Disposition'] = cd
+    response.mimetype = 'text/csv'
+
+    return response
+
+
+@app.route('/studentReport')
+def studentReport():
+    return render_template('studentReport.html')

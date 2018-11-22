@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, RadioField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
-from application.models import User
+from application.models import User, Menu
 import csv
 
 
@@ -10,7 +10,6 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
-
 '''
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
