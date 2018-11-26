@@ -1,6 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% if alreadyVoted %}
+
+<div class="well">
+    <h1>You have already voted!</h1>
+    <div class="container">
+        <p>In first place was:  {{firstPlace}}</p>
+        <p>In second place was: {{secondPlace}}</p>
+        <p>In third place was:  {{thirdPlace}}</p>
+    </div>
+</div>
+
+{% endif %}
+
 <form method = "get">
     {% if inputError %}
         <div class="alert alert-info" role="alert">
@@ -17,7 +30,7 @@
 
     {% for filename in filenames %}
         <div class="well">
-        <h1>This is Menu: {{filename.filename}}</h1>
+        <h1>{{filename.filename}}</h1>
     <br>
     <div class="well">
         {% include "HTMLfiles/" + filename.filename %}

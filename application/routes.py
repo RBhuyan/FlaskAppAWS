@@ -7,11 +7,7 @@ from application.forms import LoginForm
 from application.models import User, Menu
 from flask_csv import send_csv
 from flask_excel import init_excel
-import io
-import os
-import csv
-import zipfile
-import shutil
+import io, os, csv, zipfile, shutil, random
 
 #basedir = app.root_path
 #HTMLfiles = '/HTMLfiles'
@@ -19,7 +15,7 @@ import shutil
 #ALLOWED_EXTENSIONS = set(['.csv'])
 UPLOAD_FOLDER = 'HTMLfiles/'
 UPLOAD_FOLDER2 = 'HTMLfiles/MenuFiles/'
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'zip'])
+ALLOWED_EXTENSIONS = set(['zip'])
 
 
 @app.route('/')
@@ -27,14 +23,17 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'zip'])
 @login_required
 def index():
     if (current_user.role == "teacher"):
-        return redirect(url_for('teacher'))
+        return redirect(url_for('teacher')) #If a teacher somehow gets to this student page we redirect them to teacher page
     files = Menu.query.all()
+    #files = User.query.all()
     menuNames = []
+    if current_user.menuOne_fn is not None: #This means not even the first parameter for the user has been chosen
+        return render_template('index.html', title='Home', alreadyVoted='true', firstPlace=current_user.menuOne_fn, secondPlace=current_user.menuTwo_fn, thirdPlace=current_user.menuThree_fn)
     for file in files:
         menuNames.append(file)
+    random.shuffle(menuNames)   #shuffles the order of the menus each time the page is loaded
     if len(files) <= 0:
             return render_template('index.html', title='Home')
-
     firstMenu = request.args.get('firstMenu', '')
     secondMenu = request.args.get('secondMenu', '')
     thirdMenu = request.args.get('thirdMenu', '')
@@ -128,9 +127,14 @@ def teacher():
             files_zip = zipfile.ZipFile(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             filenameList = files_zip.namelist()
             for fName in filenameList:
-                print(fName)
+                print(fName)    #DEBUGGING PURPOSES
                 menu = Menu(filename = fName)
                 db.session.add(menu)
+            users = User.query.all()
+            for user in users:
+                user.menuOne_fn = None
+                user.menuTwo_fn = None
+                user.menuThree_fn = None
             db.session.commit()
             files_zip.extractall(app.config['UPLOAD_FOLDER2'])
             return render_template('teacher.html', bool='true') #Display the message that file transfer was successful
@@ -163,7 +167,6 @@ def download():
     cd = 'attachment; filename=studentVotingReports.csv'
     response.headers['Content-Disposition'] = cd
     response.mimetype = 'text/csv'
-
     return response
 
 

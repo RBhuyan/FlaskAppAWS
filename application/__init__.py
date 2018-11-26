@@ -6,21 +6,19 @@ from config import Config
 from flask_bootstrap import Bootstrap
 import os
 
-UPLOAD_FOLDER = 'ZippedFile/'
-#UPLOAD_FOLDER2 = 'HTMLfiles/'
-UPLOAD_FOLDER2 = 'application/templates/HTMLfiles/'
-#ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'zip'])
+UPLOAD_FOLDER = 'ZippedFile/'  #Folder that contains the zipped html files
+UPLOAD_FOLDER2 = 'application/templates/HTMLfiles/'   #Folder that will contain the html files to display
 
-app = Flask(__name__)
+
+app = Flask(__name__)   #Initializes flask app
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['UPLOAD_FOLDER2'] = UPLOAD_FOLDER2
-app.config.from_object(Config)
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
+app.config.from_object(Config)  #inherits MySQL settings from py.config in root directory of app
+db = SQLAlchemy(app)    #initilizes db to be a MySQL database with SQLAlchemy (Object-relational Mapper)
+migrate = Migrate(app, db)  #Creates the migration folder
 login = LoginManager(app)
 login.login_view = 'login'
-bootstrap = Bootstrap(app)
-#f.save(os.path.join(app.instance_path, 'csvDirectory', secure_filename(f.filename)))
+bootstrap = Bootstrap(app)  #Imports bootstrap functionality
 
 
 from application import routes, models
