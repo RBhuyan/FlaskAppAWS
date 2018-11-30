@@ -4,10 +4,11 @@ from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from application import app, db, bootstrap
 from application.forms import LoginForm
-from application.models import User, Menu
+from application.models import User
 from flask_csv import send_csv
 from flask_excel import init_excel
-import io, os, csv, zipfile, shutil, random
+import io, os, csv, zipfile, shutil, random, fnmatch
+from pathlib import PurePosixPath, PureWindowsPath, Path
 
 #basedir = app.root_path
 #HTMLfiles = '/HTMLfiles'
@@ -24,29 +25,36 @@ ALLOWED_EXTENSIONS = set(['zip'])
 def index():
     if (current_user.role == "teacher"):
         return redirect(url_for('teacher')) #If a teacher somehow gets to this student page we redirect them to teacher page
-    files = Menu.query.all()
-    #files = User.query.all()
-    menuNames = []
-    if current_user.menuOne_fn is not None: #This means not even the first parameter for the user has been chosen
+    users = User.query.filter_by(role="student")
+    userList = []
+    for user in users:
+        userList.append(user)
+    if current_user.menuOne_fn is not None: #This means the first parameter for the user has been chosen
         return render_template('index.html', title='Home', alreadyVoted='true', firstPlace=current_user.menuOne_fn, secondPlace=current_user.menuTwo_fn, thirdPlace=current_user.menuThree_fn)
-    for file in files:
-        menuNames.append(file)
-    random.shuffle(menuNames)   #shuffles the order of the menus each time the page is loaded
-    if len(files) <= 0:
+
+    #s = "/HTMLfiles/" + "u" + "/AmericanMenu.html"
+    #fullFileNames.append(s)
+    #s = "/HTMLfiles/" + "uu" + "/ChineseMenu.html"
+    #fullFileNames.append(s)
+    #s = "/HTMLfiles/" + "uuuu" + "/MexicanMenu.html"
+    #fullFileNames.append(s)
+
+    random.shuffle(userList)   #shuffles the order of the menus each time the page is loaded
+    if users is None:
             return render_template('index.html', title='Home')
     firstMenu = request.args.get('firstMenu', '')
     secondMenu = request.args.get('secondMenu', '')
     thirdMenu = request.args.get('thirdMenu', '')
     if firstMenu == '' or secondMenu == '' or thirdMenu == '' or firstMenu == secondMenu or firstMenu == thirdMenu or secondMenu == thirdMenu : #Makes sure user selected a value in all dropdown boxes
-        return render_template('index.html', title='Home', filenames=menuNames, bool='true')       #Also checks they are unique values.
-    menu = Menu.query.filter_by(filename=firstMenu).first()
-    current_user.menuOne_fn = menu.filename
-    menu = Menu.query.filter_by(filename=secondMenu).first()
-    current_user.menuTwo_fn = menu.filename
-    menu = Menu.query.filter_by(filename=thirdMenu).first()
-    current_user.menuThree_fn = menu.filename
+        return render_template('index.html', title='Home', filenames=userList, bool='true')       #Also checks they are unique values.
+    user = User.query.filter_by(username=firstMenu).first()
+    current_user.menuOne_fn = user.username
+    user = User.query.filter_by(username=secondMenu).first()
+    current_user.menuTwo_fn = user.username
+    user = User.query.filter_by(username=thirdMenu).first()
+    current_user.menuThree_fn = user.username
     db.session.commit()
-    return render_template('index.html', title='Home', filenames=menuNames, bool='true')
+    return render_template('index.html', title='Home', filenames=userList, bool='true')
 
 
 
@@ -93,6 +101,9 @@ def upload():
             listOfUsers.append(user)
         if len(listOfUsers) > 0:
             db.session.query(User).delete()
+            user = User(username = "DEMO_TEACHER", role = "teacher")
+            user.set_password("DEMO_PASSWORD")
+            db.session.add(user)
             for u in listOfUsers:
                 db.session.add(u)
             db.session.commit()
@@ -119,24 +130,44 @@ def teacher():
             #First we want to clean the HTMLFiles and ZippedFile directories
             shutil.rmtree('ZippedFile/')
             shutil.rmtree('application/templates/HTMLfiles/')
-            db.session.query(Menu).delete()
             os.makedirs('ZippedFile/')
             os.makedirs('application/templates/HTMLfiles/')
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))      #Saves the zip file into /HTMLfiles
             files_zip = zipfile.ZipFile(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             filenameList = files_zip.namelist()
-            for fName in filenameList:
-                print(fName)    #DEBUGGING PURPOSES
-                menu = Menu(filename = fName)
-                db.session.add(menu)
-            users = User.query.all()
+            pattern = "*.html"
+            rootDir = "application/templates/HTMLfiles/"
+            #We walk the root directory where menus are unzipped here
+            files_zip.extractall(app.config['UPLOAD_FOLDER2'])
+
+            #print(filenameList) #['u/AmericanMenu.html', 'uu/ChineseMenu.html', 'uuuu/MexicanMenu.html']
+            for path in filenameList:
+                print(Path(path).parts)
+                pathParts = Path(path).parts
+                user = User.query.filter_by(username=pathParts[0]).first()  # Directory names within zipped menus will be usernames
+                user.filePath = "/HTMLfiles/" + user.username + "/" + pathParts[1]
+            '''
+            for dirName, subdirList, fileList in os.walk(rootDir):
+                #print("DIRNAME: " + dirName)
+                #print(dirName)
+                #print("NEW LINE")
+                #print(subdirList)
+                #print(fileList)
+                #print("END LINE")
+                #for file in fileList:
+                #    print("FILENAMES: " + file)
+                user = User.query.filter_by(username=dirName).first() #Directory names within zipped menus will be usernames
+                if user is not None:
+                    for filename in fnmatch.filter(fileList, pattern): #We only want to get html files in the directory
+                        user.filePath = filename    #Save the html filename as a property of the user in the database
+            '''
+            users = User.query.all()    #Query all users to refresh the filename property
             for user in users:
                 user.menuOne_fn = None
                 user.menuTwo_fn = None
                 user.menuThree_fn = None
             db.session.commit()
-            files_zip.extractall(app.config['UPLOAD_FOLDER2'])
             return render_template('teacher.html', bool='true') #Display the message that file transfer was successful
     return render_template('teacher.html')
 
@@ -173,3 +204,8 @@ def download():
 @app.route('/studentReport')
 def studentReport():
     return render_template('studentReport.html')
+
+
+#@app.errorhandler(404)
+#def page_not_found(e):
+#    return render_template('404.html'), 404

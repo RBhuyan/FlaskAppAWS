@@ -21,9 +21,11 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     role = db.Column(db.String(120), index=True)
     password_hash = db.Column(db.String(128))
-    menuOne_fn = db.Column(db.String(128), db.ForeignKey('menu.filename'))
-    menuThree_fn = db.Column(db.String(128), db.ForeignKey('menu.filename'))
-    menuTwo_fn = db.Column(db.String(128), db.ForeignKey('menu.filename'))
+    menuOne_fn = db.Column(db.String(128), db.ForeignKey('user.username'))
+    menuThree_fn = db.Column(db.String(128), db.ForeignKey('user.username'))
+    menuTwo_fn = db.Column(db.String(128), db.ForeignKey('user.username'))
+    filePath = db.Column(db.String(128))
+
 
     def __repr__(self):
         return '<User {} {}>'.format(self.username, self.role)
@@ -49,11 +51,4 @@ Technically we could just have filename as a parameter, since because these are 
 
 But indexing by ID is pretty standard for databases and doesn't have a significant memory or time cost so we chose to keep that parameter in.
 '''
-class Menu(db.Model):
-    tablename = 'menu'
-    id = db.Column(db.Integer, primary_key=True)
-    filename = db.Column(db.String(160))
 
-
-    def __repr__(self):
-        return '<Menu {}>'.format(self.filename)

@@ -1,8 +1,6 @@
 {% extends "base.html" %}
-
 {% block content %}
 {% if alreadyVoted %}
-
 <div class="well">
     <h1>You have already voted!</h1>
     <div class="container">
@@ -11,8 +9,8 @@
         <p>In third place was:  {{thirdPlace}}</p>
     </div>
 </div>
+{% else %}
 
-{% endif %}
 
 <form method = "get">
     {% if inputError %}
@@ -27,47 +25,43 @@
         <p>This is the main page for Students</p>
     </div>
 
-
-    {% for filename in filenames %}
-        <div class="well">
-        <h1>{{filename.filename}}</h1>
-    <br>
+    {% for user in filenames %}
     <div class="well">
-        {% include "HTMLfiles/" + filename.filename %}
-    </div>
-    <br>
+        <br>
+        <h1>{{user.username}}'s Menu:</h1>
+        <div class="well">
+            {% include user.filePath %}
+        </div>
+        <br>
     </div>
     {% endfor %}
 
 
-    {% if filenames|length > 0 %}
     <Label>Choose first place menu: </Label>
 
     <div class="form-group">
     <select name="firstMenu" id="firstMenu">
         <option disabled selected value> -- select a menu -- </option>
         {% for filename in filenames %}
-            <option value="{{ filename.filename }}">{{ filename.filename }}</option>
+            <option value="{{ filename.username }}">{{ filename.username }}</option>
         {% endfor %}
     </select>
     </div>
 
     <br><br>
-    {% endif %}
 
-    {% if filenames|length > 1 %}
+
+
     <Label>Choose second place menu: </Label>
     <div class="form-group">
     <select name="secondMenu" id="secondMenu">
         <option disabled selected value> -- select a menu -- </option>
         {% for filename in filenames %}
-            <option value="{{ filename.filename }}">{{ filename.filename }}</option>
+            <option value="{{ filename.username }}">{{ filename.username }}</option>
         {% endfor %}
     </select>
     </div>
 
-    {% endif %}
-    {% if filenames|length > 2 %}
 
     <br><br>
     <Label>Choose third place menu: </Label>
@@ -75,17 +69,13 @@
     <select name="thirdMenu" id="thirdMenu">
         <option disabled selected value> -- select a menu -- </option>
         {% for filename in filenames %}
-            <option value="{{ filename.filename }}">{{ filename.filename }}</option>
+            <option value="{{ filename.username }}">{{ filename.username }}</option>
         {% endfor %}
     </select>
     </div>
 
-    {% endif %}
-    {% if filenames|length > 0 %}
-
         <button id="submit_button" type="submit" class="btn btn-default" onclick="myfunction()">Go</button>
 
-    {% endif %}
 </form>
 
     <script type="text/javascript">
@@ -102,5 +92,6 @@
         return true;
     }
     </script>
+{% endif %}
 {% endblock %}
 

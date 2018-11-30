@@ -1,5 +1,5 @@
 from application import app, db
-from application.models import User, Menu
+from application.models import User
 from flask import Flask
 
 import sys
@@ -18,7 +18,7 @@ application = app
 #Simple little script to allow us to interact with the database without running the website in local host
 @application.shell_context_processor
 def make_shell_context():
-    return {'db': db, 'User': User, 'Menu': Menu}
+    return {'db': db, 'User': User}
 
 #Standard way to run the application
 if __name__ == "__main__":

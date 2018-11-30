@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Page Not Found{% endblock %}
+{% block body %}
+  <h1>Uknown URL entered</h1>
+  <p>I don't know how you got here, but there's not much to do </p>
+  <p><a href="{{ url_for('index') }}">Click here to return to the home page</a></p>
+{% endblock %}
