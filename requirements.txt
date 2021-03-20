@@ -17,7 +17,7 @@ Flask-SQLAlchemy==2.3.2
 Flask-WTF==0.14.2
 importlib-metadata==0.6
 itsdangerous==1.1.0
-Jinja2==2.10
+Jinja2==2.11.3
 jmespath==0.9.3
 lml==0.0.7
 Mako==1.0.7
